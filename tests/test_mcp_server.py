@@ -46,3 +46,25 @@ def test_glossary_result_comes_back_through_mcp(tmp_path):
     assert returns and returns[0].tool_name == GLOSSARY_TOOL
     assert str(returns[0].content).strip()  # 検索結果（または「見つかりませんでした」）が戻っている
     assert result.output
+
+
+
+def test_make_quiz_is_exposed_through_mcp(tmp_path):
+    model = TestModel(call_tools=[])
+    build_mcp_agent(_glossary_only_config(tmp_path)).run_sync("ツール一覧", model=model)
+
+    offered = {t.name for t in model.last_model_request_parameters.function_tools}
+    assert "glossary_make_quiz" in offered
+
+
+def test_make_quiz_invalid_lecture_through_mcp(tmp_path):
+    model = TestModel(call_tools=["glossary_make_quiz"])
+    result = build_mcp_agent(_glossary_only_config(tmp_path)).run_sync("確認問題を作成", model=model)
+
+    calls = _parts(result, ToolCallPart)
+    assert [p.tool_name for p in calls] == ["glossary_make_quiz"]
+
+    returns = _parts(result, ToolReturnPart)
+    assert len(returns) == 1
+    assert returns[0].tool_name == "glossary_make_quiz"
+    assert "1以上" in str(returns[0].content)
