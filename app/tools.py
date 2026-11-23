@@ -78,7 +78,9 @@ def get_lecture_summary(lecture: int) -> str:
         return f"第{lecture}回の要点はまだありません。用意されている回: {', '.join(available)}"
     return path.read_text(encoding="utf-8")
 def make_quiz(lecture: int) -> str:
-    """指定した講義の内容から確認問題を1問作るときに使う。"""
+    """指定した講義の内容から確認問題を1問作るときに使う。"""    
+    if lecture < 1:
+        return "講義の回数は1以上を指定してください。"
     terms = [e for e in load_glossary() if e["lecture"] == lecture]
 
     if not terms:
